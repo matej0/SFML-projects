@@ -124,3 +124,61 @@ private:
 extern std::vector<CObstacle> rgObstacles;
 extern Vector2f vPos;
 void ResetGame(CPlayer& player);
+/*const int tiles[] =
+{
+	0, 1, 2, 1, 2, 1, 0,
+	0, 2, 1, 2, 1, 2, 0,
+	0, 1, 2, 1, 2, 1, 0,
+	0, 2, 1, 2, 1, 2, 0,
+	0, 1, 2, 1, 2, 1, 0,
+	0, 2, 1, 2, 1, 2, 0,
+	0, 1, 2, 1, 2, 1, 0,
+	0, 2, 1, 2, 1, 2, 0,
+	0, 1, 2, 1, 2, 1, 0,
+	0, 2, 1, 2, 1, 2, 0,
+	0, 1, 2, 1, 2, 1, 0,
+	0, 2, 1, 2, 1, 2, 0,
+};
+
+
+CWorld world("cze.png", tiles, 7, 12, { 32, 32 });
+gTileMapProps.width = 7 * 32;
+gTileMapProps.height = 12 * 32;
+
+CPlayer player;
+
+for (int i = 0; i < 5; i++)
+{
+	CObstacle obstacle(vPos);
+	rgObstacles.push_back(obstacle);
+	vPos.x += 32;
+
+	if (i % 2 == 0)
+		vPos.y = gTileMapProps.height - 18.f;
+	else
+		vPos.y = 18.f;
+
+	if (rgObstacles.at(i).getPosition().y == gTileMapProps.height - 18.f)
+		rgObstacles.at(i).m_bShouldStartWithInverseVelocity = true;
+	else
+		rgObstacles.at(i).m_bShouldStartWithInverseVelocity = false;
+}
+
+for (int i = 0; i < rgObstacles.size(); i++)
+{
+	rgObstacles[i].StartMoving();
+}*/
+
+
+/*player.Think();
+player.Draw(&window);
+
+for (int i = 0; i < rgObstacles.size(); i++)
+{
+	rgObstacles[i].Think();
+	rgObstacles[i].Draw(&window);
+
+	if (player.HitObstacle(rgObstacles[i]))
+		ResetGame(player);
+
+}*/

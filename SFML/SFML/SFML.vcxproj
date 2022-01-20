@@ -164,6 +164,7 @@
     <ClCompile Include="HardGame.cpp" />
     <ClCompile Include="SFML.cpp" />
     <ClCompile Include="Snake.cpp" />
+    <ClCompile Include="Tank.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Clock.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="GUI.h" />
     <ClInclude Include="HardGame.h" />
     <ClInclude Include="Snake.h" />
+    <ClInclude Include="Tank.h" />
     <ClInclude Include="WindowData.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -8,10 +8,7 @@
 #include <array>
 #include <random>
 #include "WindowData.h"
-#include "HardGame.h"
-//#include "Clock.h"
-//#include "Snake.h"
-#include "GUI.h"
+#include "Tank.h"
 using namespace sf;
 CWindow g_WindowData;
 
@@ -20,12 +17,15 @@ int main()
 	ContextSettings settings;
 	settings.antialiasingLevel = 2;
 
-	RenderWindow window(VideoMode(400, 400, 32), "FUCK NIGGERS!");
+	RenderWindow window(VideoMode(800, 800, 32), "FUCK NIGGERS!", Style::Default, settings);
 	window.setFramerateLimit(60);
 
-
+	g_WindowData.pRenderWindowPointer = &window;
 	g_WindowData.width = window.getSize().x;
 	g_WindowData.height = window.getSize().y;
+
+	g_WindowData.center[0] = window.getSize().x / 2.f; 
+	g_WindowData.center[1] = window.getSize().y / 2.f;
 
 	if (!g_WindowData.font.loadFromFile("C:\\Windows\\Fonts\\Verdana.ttf"))
 	{
@@ -33,52 +33,9 @@ int main()
 	}
 
 	Clock deltaClock;
-	CPlayer penis;
 
-	const int tiles[] =
-	{
-		0, 1, 2, 1, 2, 1, 0,
-		0, 2, 1, 2, 1, 2, 0,
-		0, 1, 2, 1, 2, 1, 0,
-		0, 2, 1, 2, 1, 2, 0, 
-		0, 1, 2, 1, 2, 1, 0,
-		0, 2, 1, 2, 1, 2, 0,
-		0, 1, 2, 1, 2, 1, 0,
-		0, 2, 1, 2, 1, 2, 0,
-		0, 1, 2, 1, 2, 1, 0,
-		0, 2, 1, 2, 1, 2, 0,
-		0, 1, 2, 1, 2, 1, 0,
-		0, 2, 1, 2, 1, 2, 0,
-	};
-
-	
-	CWorld world("cze.png", tiles, 7, 12, { 32, 32 });
-	gTileMapProps.width = 7 * 32;
-	gTileMapProps.height = 12 * 32;
-
-	CPlayer player;
-
-	for (int i = 0; i < 5; i++)
-	{
-		CObstacle obstacle(vPos);
-		rgObstacles.push_back(obstacle);
-		vPos.x += 32;
-
-		if (i % 2 == 0)
-			vPos.y = gTileMapProps.height - 18.f;
-		else
-			vPos.y = 18.f;
-
-		if (rgObstacles.at(i).getPosition().y == gTileMapProps.height - 18.f)
-			rgObstacles.at(i).m_bShouldStartWithInverseVelocity = true;
-		else
-			rgObstacles.at(i).m_bShouldStartWithInverseVelocity = false;
-	}
-
-	for (int i = 0; i < rgObstacles.size(); i++)
-	{
-		rgObstacles[i].StartMoving();
-	}
+	CTank Tank(30.f, Color::White);
+	CTarget Target;
 
 	while (window.isOpen())
 	{
@@ -93,22 +50,20 @@ int main()
 
 		window.clear();
 
-		window.draw(world);
-
-		player.Think();
-		player.Draw(&window);
-	
-		for (int i = 0; i < rgObstacles.size(); i++)
+		DrawCrosshair(&window);
+		Tank.MouseMove();
 		{
-			rgObstacles[i].Think();
-			rgObstacles[i].Draw(&window);
+			Tank.SpawnBullet();
+			Tank.SimulateBullet();
+			Tank.DrawBullet(&window);
 
-			if (player.HitObstacle(rgObstacles[i]))
-				ResetGame(player);
-
+			Target.Think(Tank);
+			Target.Draw(&window);
 		}
+		Tank.Draw(&window);
 
-
+		Tank.DrawDebugOverlay(&window);
+		
 		window.display();
 	}
 }
