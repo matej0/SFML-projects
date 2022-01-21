@@ -1,6 +1,17 @@
 #include "Tank.h"
 ITankGameInfo gTankGameInfo;
-constexpr float g_flProjectileSpeed = 700.f;
+constexpr float g_flProjectileSpeed = 900.f;
+constexpr int m_iDamage = 25;
+constexpr int m_iMaxHealth = 100;
+
+void DrawString(Vector2f vecPosition, int iCharSize, Uint32 iStyle, Font TextFont, Color clrTextColor, sf::String strText, ...)
+{
+	static RenderWindow* pRenderWindow = reinterpret_cast<RenderWindow*>(g_WindowData.pRenderWindowPointer);
+	Text text(strText, TextFont, iCharSize);
+	text.setPosition(vecPosition);
+	text.setFillColor(clrTextColor);
+	pRenderWindow->draw(text);
+}
 
 void DrawCrosshair(RenderWindow* pWindow)
 {
@@ -34,14 +45,22 @@ void CTank::Draw(RenderWindow* pRenderWindow)
 
 void CTank::DrawDebugOverlay(RenderWindow* pRenderWindow)
 {
-	Text lastFireShot;
-	lastFireShot.setString(std::to_string(this->m_flLastShotTime));
-	lastFireShot.setPosition(10, 10);
-	lastFireShot.setFont(g_WindowData.font);
-	lastFireShot.setCharacterSize(12);
-	lastFireShot.setFillColor(Color::White);
-	lastFireShot.setStyle(Text::Regular);
-	pRenderWindow->draw(lastFireShot);
+	static float fps;
+	static sf::Clock clock = sf::Clock::Clock();
+	static sf::Time previousTime = clock.getElapsedTime();
+	static sf::Time currentTime;
+
+	DrawString({ 10, 24 }, 12, Text::Regular, g_WindowData.font, Color::White, "Kills: " + std::to_string(gTankGameInfo.m_nKills));
+
+	currentTime = clock.getElapsedTime();
+	fps = 1.0f / (currentTime.asSeconds() - previousTime.asSeconds()); // the asSeconds returns a float
+	DrawString({ 10, 36 }, 12, Text::Regular, g_WindowData.font, Color::White, "FPS: " + std::to_string(int(fps)));
+	previousTime = currentTime;
+
+	DrawString({ 10, 10 }, 12, Text::Regular, g_WindowData.font, Color::White, "Last fire time: " + std::to_string(this->m_flLastShotTime));
+	DrawString({ 10, 48 }, 12, Text::Regular, g_WindowData.font, Color::White, "Bullets active: " + std::to_string(this->m_Bullets.size()));
+
+
 }
 
 void CTank::MouseMove()
@@ -49,7 +68,7 @@ void CTank::MouseMove()
 	RenderWindow* pRenderWindow = reinterpret_cast<RenderWindow*>(g_WindowData.pRenderWindowPointer);
 	Mouse myMouse;
 	Vector2i vecMousePosition = myMouse.getPosition(*pRenderWindow);
-	Vector2f vecScreenCenter = Vector2f(g_WindowData.center[0], g_WindowData.center[1]);
+	Vector2f vecScreenCenter = this->getPosition();
 	
 	Vector2f vecDelta = Vector2f();
 	vecDelta.x = vecMousePosition.x - vecScreenCenter.x;
@@ -60,11 +79,16 @@ void CTank::MouseMove()
 
 void CTank::Move()
 {
-	if (Keyboard::isKeyPressed(Keyboard::Left))
-		this->rotate(-10.f);
+	this->m_vecVelocity.x = std::cos(DEG2RAD(this->getRotation() - 90)) * 100.f * g_WindowData.deltaTime; //standard cosine and sine functions take radians and not degrees. oops.
+	this->m_vecVelocity.y = std::sin(DEG2RAD(this->getRotation() - 90)) * 100.f * g_WindowData.deltaTime;
 
-	if (Keyboard::isKeyPressed(Keyboard::Right))
-		this->rotate(10.f);
+	if (Keyboard::isKeyPressed(Keyboard::W) || Mouse::isButtonPressed(Mouse::XButton2))
+		this->move(this->m_vecVelocity);
+	else if (Keyboard::isKeyPressed(Keyboard::S) || Mouse::isButtonPressed(Mouse::XButton1))
+		this->move(-this->m_vecVelocity);
+
+	gTankGameInfo.m_vecTankOrigin = this->getPosition();
+	gTankGameInfo.m_TankBoundingBox = this->getLocalBounds();
 }
 
 bool IsOutsideWindow(Vector2f vecPos)
@@ -75,9 +99,9 @@ bool IsOutsideWindow(Vector2f vecPos)
 CBullet* CreateBullet(Vector2f vecPosition)
 {
 	CBullet* pBullet = new CBullet();
-	pBullet->setSize({10.f, 2.f});
-	pBullet->setOrigin(pBullet->getGlobalBounds().width / 2.f, pBullet->getGlobalBounds().height / 2.f);
-	pBullet->setPosition({ g_WindowData.center[0],  g_WindowData.center[1] });
+	pBullet->setSize({10.f, 3.f});
+	pBullet->setOrigin(pBullet->getGlobalBounds().width, pBullet->getGlobalBounds().height);
+	pBullet->setPosition(gTankGameInfo.m_vecTankOrigin);
 	pBullet->setFillColor(Color::Yellow);
 	return pBullet;
 }
@@ -98,8 +122,6 @@ void CTank::DrawBullet(RenderWindow* pWindow)
 	}
 
 	this->DestroyInvalidBullets();
-	//system("cls");
-	//std::cout << "Size: " << this->m_Bullets.size() << std::endl;
 }
 
 void CTank::SpawnBullet()
@@ -158,68 +180,227 @@ void CTank::DestroyInvalidBullets()
 	}
 }
 
-Vector2f CTarget::GetSpawnPosition()
+bool CTarget::IsInvalidSpawnPosition(Vector2f vecSpawnPos) //TODO: FIX THIS RETARDED SHIT!
+{
+	if (gTankGameInfo.m_TankBoundingBox.contains(vecSpawnPos))
+		return true;
+
+	//you cant spawn on top of an another target if there are no other targets.
+	if (this->m_Targets.empty())
+		return false; 
+
+	for (auto pTarget : m_Targets)
+	{
+		if (this->getGlobalBounds().contains(pTarget->getPosition()) || this->getGlobalBounds().intersects(pTarget->getGlobalBounds()))
+			return true;
+	}
+	
+	return false;
+}
+
+Vector2f CTarget::GetSpawnPosition() //THIS TOO!
 {
 	Vector2f vecSpawnPos = Vector2f();
 
-	vecSpawnPos.x = g_WindowData.Random(40, 740);
+	vecSpawnPos.x = g_WindowData.Random(40, 1140);
 	vecSpawnPos.y = g_WindowData.Random(40, 740);
+
+	while (gTankGameInfo.m_TankBoundingBox.contains(vecSpawnPos))
+	{
+		//if spawn pos is invalid, keep generating new positions until one is valid. idk if this is the best way to do this but i dont think its very resource intensive so who cares.
+		vecSpawnPos.x = g_WindowData.Random(40, 1140);
+		vecSpawnPos.y = g_WindowData.Random(40, 740);
+	}
+
 
 	return vecSpawnPos;
 }
 
 void CTarget::Spawn()
 {
-	this->m_QueueNextTarget = false;
-
+	static Texture pTargetTexture;
+	pTargetTexture.loadFromFile("Daco.png", IntRect((ZOMBIE_ATLAS_WIDTH - (ZOMBIE_WIDTH * 2)), (ZOMBIE_ATLAS_HEIGHT - (ZOMBIE_HEIGHT * 2)), ZOMBIE_WIDTH, ZOMBIE_HEIGHT));
 	CTarget* pNewTarget = new CTarget();
 
-	pNewTarget->setSize(Vector2f(25.f, 25.f));
-	pNewTarget->setFillColor(Color(0, 0, 0, 0));
-	pNewTarget->setOutlineColor(Color::White);
-	pNewTarget->setOutlineThickness(2.f);
-
+	pNewTarget->setTexture(pTargetTexture);
 	pNewTarget->setOrigin(pNewTarget->getGlobalBounds().width / 2.f, pNewTarget->getGlobalBounds().height / 2.f);
 	pNewTarget->setPosition(this->GetSpawnPosition());
+	pNewTarget->m_DefaultColor = pNewTarget->getColor();
 
 	this->m_Targets.push_back(pNewTarget);
 }
 
 bool CTarget::HasBeenShot(CBullet* pBullet)
 {
-	return (this->getGlobalBounds().contains(pBullet->getPosition()));
+	return (this->getGlobalBounds().contains(pBullet->getPosition()) || pBullet->getGlobalBounds().intersects(this->getGlobalBounds()));
 }
 
-void CTarget::Die(CBullet* pBullet)
+void CTarget::OnTargetHurt()
+{
+	this->setColor(Color::Red);
+}
+
+void CTarget::Die(CBullet* pBullet, CTank& pTank)
 {
 	for (UINT i = 0; i < this->m_Targets.size(); i++)
 	{
 		CTarget* pTarget = this->m_Targets[i];
 
+		if (pTarget->m_DefaultColor != pTarget->getColor())
+		{
+			static Clock clock;
+
+			if (clock.getElapsedTime().asMilliseconds() > 200.f)
+			{
+				pTarget->setColor(pTarget->m_DefaultColor);
+				clock.restart();
+			}
+		}
+
 		if (pTarget->HasBeenShot(pBullet))
 		{
 			pBullet->m_bMarkedForDeletion = true; // delete bullet after it hits a target.
-			delete pTarget;
-			this->m_Targets.erase(this->m_Targets.begin() + i);
-			this->Spawn();
-			gTankGameInfo.m_nKills++;
+			pTarget->m_iHealth -= m_iDamage;
+			pTarget->OnTargetHurt();
+
+			if (pTarget->m_iHealth <= 0)
+			{
+				delete pTarget;
+				this->m_Targets.erase(this->m_Targets.begin() + i);
+				this->Spawn();
+				gTankGameInfo.m_nKills++;
+			}
 		}
 	}
 }
 
-void CTarget::Think(CTank &tank)
+//credits: the internet
+//std::lerp has been added in c++20 and im using c++17 gg
+float lerp(float a, float b, float t)
 {
-	for (auto pBullets : tank.m_Bullets)
-		this->Die(pBullets);
+	return a + t * (b - a);
+}
+
+void CTarget::MoveToTank(CTank& Tank)
+{
+	static float flFactor = 0.0f; 
+	flFactor = (g_WindowData.deltaTime * 0.1f);
+
+	for (UINT i = 0; i < this->m_Targets.size(); i++)
+	{
+		CTarget* pTarget = this->m_Targets[i];
+		pTarget->setPosition({ lerp(pTarget->getPosition().x, Tank.getPosition().x, flFactor), lerp(pTarget->getPosition().y, Tank.getPosition().y, flFactor) });
+	}
+}
+
+bool CTarget::IsTouchingTank(CTank& Tank)
+{
+	return (this->getGlobalBounds().contains(Tank.getPosition()));
+}
+
+void CTarget::Think(CTank &Tank)
+{
+
+	this->MoveToTank(Tank);
+
+	for (auto pBullets : Tank.m_Bullets)
+		this->Die(pBullets, Tank);
+}
+
+Color GetHealthColor(int iHP, int iMaxHP)
+{
+	int iGreen = (255 * iHP) / iMaxHP;
+	int iRed = 255 - iGreen;
+
+	return Color(iRed, iGreen, 0);
+}
+
+int GetHealthWidth(int iHP, int iMaxHP)
+{
+	return (int)std::round(50 * iHP / iMaxHP);
+}
+
+RectangleShape CreateHealthBar(Vector2f vecPos, Color clrHealth, int iWidth)
+{
+	RectangleShape HealthBar;
+
+	static Vector2f vecCenter = Vector2f(HealthBar.getGlobalBounds().width / 2.f, HealthBar.getGlobalBounds().height / 2.f);
+	HealthBar.setOrigin(vecCenter);
+	HealthBar.setPosition(vecPos);
+	HealthBar.setSize({ static_cast<float>(iWidth) - 1.f, 3.f });
+	HealthBar.setFillColor(clrHealth);
+
+	return HealthBar;
+}
+void CTarget::DrawHealth(RenderWindow* pRenderWindow)
+{
+	int iHP = this->m_iHealth;
+	int iMaxHP = 100;
+
+	Vector2f vecPos = this->getPosition();
+	vecPos.x -= (this->getGlobalBounds().width / 2.f) - 10.f;
+	vecPos.y -= (this->getGlobalBounds().height / 2.f) - 10.f;
+
+
+	RectangleShape Health = CreateHealthBar(vecPos, GetHealthColor(iHP, iMaxHP), GetHealthWidth(iHP, iMaxHP));
+	pRenderWindow->draw(Health);
+}
+
+
+
+void DrawTankBBOX(CTank& pTarget, RenderWindow* pWindow)
+{
+	RectangleShape BBOX;
+	BBOX.setFillColor(Color(0, 0, 0, 0));
+	BBOX.setOutlineColor(Color::Red);
+	BBOX.setOutlineThickness(1.f);
+	BBOX.setOrigin(pTarget.getOrigin());
+	BBOX.setPosition(pTarget.getPosition());
+	BBOX.setSize(Vector2f(pTarget.getLocalBounds().width, pTarget.getLocalBounds().height));
+	pWindow->draw(BBOX);
+}
+
+void DrawTargetBBOX(CTarget* pTarget, RenderWindow* pWindow)
+{
+	RectangleShape BBOX;
+	BBOX.setFillColor(Color(0, 0, 0, 0));
+	BBOX.setOutlineColor(Color::Red);
+	BBOX.setOutlineThickness(1.f);
+	BBOX.setOrigin(pTarget->getOrigin());
+	BBOX.setPosition(pTarget->getPosition());
+	BBOX.setSize(Vector2f(pTarget->getGlobalBounds().width, pTarget->getGlobalBounds().height));
+	pWindow->draw(BBOX);
 }
 
 void CTarget::Draw(RenderWindow* pRenderWindow)
 {
-	for (static size_t i = 0; i < 3; i++)
+	for (static size_t i = 0; i < 7; i++)
 		Spawn();
 
 	for (auto pTarget : m_Targets)
 	{
+		//DrawTargetBBOX(pTarget, pRenderWindow);
+		pTarget->DrawHealth(pRenderWindow);
 		pRenderWindow->draw(*pTarget);
 	}
+}
+
+void PlayGame(RenderWindow* pRenderWindow, CTank& Tank, CTarget& Target)
+{
+	Tank.DrawDebugOverlay(pRenderWindow);
+	//DrawTankBBOX(Tank, pRenderWindow);
+
+	Tank.MouseMove();
+	Tank.Move();
+	{
+		Tank.SpawnBullet();
+		Tank.SimulateBullet();
+		Tank.DrawBullet(pRenderWindow);
+
+		Target.Think(Tank);
+		Target.Draw(pRenderWindow);
+	}
+	Tank.Draw(pRenderWindow);
+
+	DrawCrosshair(pRenderWindow);
 }

@@ -15,10 +15,10 @@ public:
 	unsigned int width;
 	unsigned int height;
 	sf::Font font;
-	double curtime;
 	float deltaTime;
 	float center[2];
 	PVOID pRenderWindowPointer;
+	PVOID pCurTime;
 
 	int Random(int min, int max)
 	{

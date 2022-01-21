@@ -17,8 +17,8 @@ int main()
 	ContextSettings settings;
 	settings.antialiasingLevel = 2;
 
-	RenderWindow window(VideoMode(800, 800, 32), "FUCK NIGGERS!", Style::Default, settings);
-	window.setFramerateLimit(60);
+	RenderWindow window(VideoMode(1200, 800, 32), "FUCK NIGGERS!", Style::Default, settings);
+	window.setFramerateLimit(144);
 
 	g_WindowData.pRenderWindowPointer = &window;
 	g_WindowData.width = window.getSize().x;
@@ -32,13 +32,26 @@ int main()
 		//idk
 	}
 
+	Clock CurTimeClock;
+	g_WindowData.pCurTime = &CurTimeClock;
 	Clock deltaClock;
 
-	CTank Tank(30.f, Color::White);
+	Texture* pTexture = new Texture();
+	
+	if (!pTexture->loadFromFile("tank.bmp", IntRect(25, 10, (256 - 45), (256 - 10))))
+	{
+		std::cout << "Couldnt load tank texture! (tank.bmp)\n";
+	}
+
+	CTank Tank(pTexture);
 	CTarget Target;
+
 
 	while (window.isOpen())
 	{
+		if (CurTimeClock.getElapsedTime().asSeconds() >= FLT_MAX)
+			CurTimeClock.restart();
+
 		g_WindowData.deltaTime = deltaClock.restart().asSeconds();
 
 		Event event;
@@ -50,20 +63,8 @@ int main()
 
 		window.clear();
 
-		DrawCrosshair(&window);
-		Tank.MouseMove();
-		{
-			Tank.SpawnBullet();
-			Tank.SimulateBullet();
-			Tank.DrawBullet(&window);
+		PlayGame(&window, Tank, Target);
 
-			Target.Think(Tank);
-			Target.Draw(&window);
-		}
-		Tank.Draw(&window);
-
-		Tank.DrawDebugOverlay(&window);
-		
 		window.display();
 	}
 }
