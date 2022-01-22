@@ -17,7 +17,7 @@ int main()
 	ContextSettings settings;
 	settings.antialiasingLevel = 2;
 
-	RenderWindow window(VideoMode(1200, 800, 32), "FUCK NIGGERS!", Style::Default, settings);
+	RenderWindow window(VideoMode(1200, 800, 32), "XD", Style::Default, settings);
 	window.setFramerateLimit(144);
 
 	g_WindowData.pRenderWindowPointer = &window;
