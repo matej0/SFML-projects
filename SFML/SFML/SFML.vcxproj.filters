@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Tank">
+      <UniqueIdentifier>{0f655e4e-1ec5-4e1d-869c-7afb1e0cdb80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tank">
+      <UniqueIdentifier>{2da8120b-f2f1-423c-95d7-0b0c0cf6b799}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SFML.cpp">
@@ -31,7 +37,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tank.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Tank</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -54,7 +60,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Tank.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Tank</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

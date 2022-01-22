@@ -17,7 +17,7 @@ int main()
 	ContextSettings settings;
 	settings.antialiasingLevel = 2;
 
-	RenderWindow window(VideoMode(1200, 800, 32), "XD", Style::Default, settings);
+	RenderWindow window(VideoMode(1200, 800, 32), "FUCK NIGGERS!", Style::Default, settings);
 	window.setFramerateLimit(144);
 
 	g_WindowData.pRenderWindowPointer = &window;
@@ -44,8 +44,7 @@ int main()
 	}
 
 	CTank Tank(pTexture);
-	CTarget Target;
-
+	CGame Game;
 
 	while (window.isOpen())
 	{
@@ -63,7 +62,7 @@ int main()
 
 		window.clear();
 
-		PlayGame(&window, Tank, Target);
+		PlayGame(&window, &Tank, &Game);
 
 		window.display();
 	}

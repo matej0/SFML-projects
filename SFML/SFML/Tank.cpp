@@ -1,8 +1,5 @@
 #include "Tank.h"
-ITankGameInfo gTankGameInfo;
-constexpr float g_flProjectileSpeed = 900.f;
-constexpr int m_iDamage = 25;
-constexpr int m_iMaxHealth = 100;
+ITankGameInfo gGameInfo;
 
 void DrawString(Vector2f vecPosition, int iCharSize, Uint32 iStyle, Font TextFont, Color clrTextColor, sf::String strText, ...)
 {
@@ -43,26 +40,6 @@ void CTank::Draw(RenderWindow* pRenderWindow)
 	pRenderWindow->draw(*this);
 }
 
-void CTank::DrawDebugOverlay(RenderWindow* pRenderWindow)
-{
-	static float fps;
-	static sf::Clock clock = sf::Clock::Clock();
-	static sf::Time previousTime = clock.getElapsedTime();
-	static sf::Time currentTime;
-
-	DrawString({ 10, 24 }, 12, Text::Regular, g_WindowData.font, Color::White, "Kills: " + std::to_string(gTankGameInfo.m_nKills));
-
-	currentTime = clock.getElapsedTime();
-	fps = 1.0f / (currentTime.asSeconds() - previousTime.asSeconds()); // the asSeconds returns a float
-	DrawString({ 10, 36 }, 12, Text::Regular, g_WindowData.font, Color::White, "FPS: " + std::to_string(int(fps)));
-	previousTime = currentTime;
-
-	DrawString({ 10, 10 }, 12, Text::Regular, g_WindowData.font, Color::White, "Last fire time: " + std::to_string(this->m_flLastShotTime));
-	DrawString({ 10, 48 }, 12, Text::Regular, g_WindowData.font, Color::White, "Bullets active: " + std::to_string(this->m_Bullets.size()));
-
-
-}
-
 void CTank::MouseMove()
 {
 	RenderWindow* pRenderWindow = reinterpret_cast<RenderWindow*>(g_WindowData.pRenderWindowPointer);
@@ -77,7 +54,7 @@ void CTank::MouseMove()
 	this->setRotation(angle);
 }
 
-void CTank::Move()
+void CTank::MoveTank()
 {
 	this->m_vecVelocity.x = std::cos(DEG2RAD(this->getRotation() - 90)) * 100.f * g_WindowData.deltaTime; //standard cosine and sine functions take radians and not degrees. oops.
 	this->m_vecVelocity.y = std::sin(DEG2RAD(this->getRotation() - 90)) * 100.f * g_WindowData.deltaTime;
@@ -87,8 +64,8 @@ void CTank::Move()
 	else if (Keyboard::isKeyPressed(Keyboard::S) || Mouse::isButtonPressed(Mouse::XButton1))
 		this->move(-this->m_vecVelocity);
 
-	gTankGameInfo.m_vecTankOrigin = this->getPosition();
-	gTankGameInfo.m_TankBoundingBox = this->getLocalBounds();
+	gGameInfo.m_vecTankOrigin = this->getPosition();
+	gGameInfo.m_TankBoundingBox = this->getLocalBounds();
 }
 
 bool IsOutsideWindow(Vector2f vecPos)
@@ -101,7 +78,7 @@ CBullet* CreateBullet(Vector2f vecPosition)
 	CBullet* pBullet = new CBullet();
 	pBullet->setSize({10.f, 3.f});
 	pBullet->setOrigin(pBullet->getGlobalBounds().width, pBullet->getGlobalBounds().height);
-	pBullet->setPosition(gTankGameInfo.m_vecTankOrigin);
+	pBullet->setPosition(gGameInfo.m_vecTankOrigin);
 	pBullet->setFillColor(Color::Yellow);
 	return pBullet;
 }
@@ -137,9 +114,7 @@ void CTank::SpawnBullet()
 		CBullet* pBullet = CreateBullet({ g_WindowData.center[0],  g_WindowData.center[1] });
 
 		pBullet->setRotation(this->getRotation() - 90); //make it shoot out of the top of the triangle
-		pBullet->m_vecVelocity.x = std::cos(DEG2RAD(pBullet->getRotation())) * g_flProjectileSpeed * g_WindowData.deltaTime; //standard cosine and sine functions take radians and not degrees. oops.
-		pBullet->m_vecVelocity.y = std::sin(DEG2RAD(pBullet->getRotation())) * g_flProjectileSpeed * g_WindowData.deltaTime;
-
+		pBullet->SetVelocity(std::cos(DEG2RAD(pBullet->getRotation())) * g_flProjectileSpeed * g_WindowData.deltaTime, std::sin(DEG2RAD(pBullet->getRotation())) * g_flProjectileSpeed * g_WindowData.deltaTime);
 		this->m_Bullets.push_back(pBullet);
 		ShootClock.restart();
 	}
@@ -147,24 +122,20 @@ void CTank::SpawnBullet()
 
 void CTank::InvalidateBullet(CBullet* pBullet)
 {
-	pBullet->m_bMarkedForDeletion = true;
+	pBullet->SetIsMarkedForDeletion(true);
 }
 
 void CTank::SimulateBullet()
 {
-	for (UINT i = 0; i < this->m_Bullets.size(); i++)
+	for (auto pBullet : this->m_Bullets)
 	{
-		CBullet* pBullet = this->m_Bullets[i];
-
 		if (!pBullet)
 			continue;
 
-		pBullet->move(pBullet->m_vecVelocity);
+		pBullet->move(pBullet->GetVelocity());
 
 		if (IsOutsideWindow(pBullet->getPosition())) //destroy bullet when out of screen
-		{
 			this->InvalidateBullet(pBullet);
-		}
 	}
 }
 
@@ -172,7 +143,7 @@ void CTank::DestroyInvalidBullets()
 {
 	for (UINT i = 0; i < this->m_Bullets.size(); i++)
 	{
-		if (this->m_Bullets[i]->m_bMarkedForDeletion)
+		if (this->m_Bullets[i]->GetIsMarkedForDeletion())
 		{
 			delete m_Bullets[i];
 			this->m_Bullets.erase(this->m_Bullets.begin() + i); 
@@ -182,7 +153,7 @@ void CTank::DestroyInvalidBullets()
 
 bool CTarget::IsInvalidSpawnPosition(Vector2f vecSpawnPos) //TODO: FIX THIS RETARDED SHIT!
 {
-	if (gTankGameInfo.m_TankBoundingBox.contains(vecSpawnPos))
+	/*if (gGameInfo.m_TankBoundingBox.contains(vecSpawnPos))
 		return true;
 
 	//you cant spawn on top of an another target if there are no other targets.
@@ -195,7 +166,7 @@ bool CTarget::IsInvalidSpawnPosition(Vector2f vecSpawnPos) //TODO: FIX THIS RETA
 			return true;
 	}
 	
-	return false;
+	return false;*/
 }
 
 Vector2f CTarget::GetSpawnPosition() //THIS TOO!
@@ -205,18 +176,17 @@ Vector2f CTarget::GetSpawnPosition() //THIS TOO!
 	vecSpawnPos.x = g_WindowData.Random(40, 1140);
 	vecSpawnPos.y = g_WindowData.Random(40, 740);
 
-	while (gTankGameInfo.m_TankBoundingBox.contains(vecSpawnPos))
-	{
+	//while (gGameInfo.m_TankBoundingBox.contains(vecSpawnPos))
+	//{
 		//if spawn pos is invalid, keep generating new positions until one is valid. idk if this is the best way to do this but i dont think its very resource intensive so who cares.
-		vecSpawnPos.x = g_WindowData.Random(40, 1140);
-		vecSpawnPos.y = g_WindowData.Random(40, 740);
-	}
-
+	//	vecSpawnPos.x = g_WindowData.Random(40, 1140);
+	//	vecSpawnPos.y = g_WindowData.Random(40, 740);
+	//}
 
 	return vecSpawnPos;
 }
 
-void CTarget::Spawn()
+CTarget* CreateTarget()
 {
 	static Texture pTargetTexture;
 	pTargetTexture.loadFromFile("Daco.png", IntRect((ZOMBIE_ATLAS_WIDTH - (ZOMBIE_WIDTH * 2)), (ZOMBIE_ATLAS_HEIGHT - (ZOMBIE_HEIGHT * 2)), ZOMBIE_WIDTH, ZOMBIE_HEIGHT));
@@ -224,10 +194,11 @@ void CTarget::Spawn()
 
 	pNewTarget->setTexture(pTargetTexture);
 	pNewTarget->setOrigin(pNewTarget->getGlobalBounds().width / 2.f, pNewTarget->getGlobalBounds().height / 2.f);
-	pNewTarget->setPosition(this->GetSpawnPosition());
+	pNewTarget->setPosition(pNewTarget->GetSpawnPosition());
 	pNewTarget->m_DefaultColor = pNewTarget->getColor();
 
-	this->m_Targets.push_back(pNewTarget);
+	gGameInfo.m_bQueueNextTarget = false; //new target was spawned
+	return pNewTarget;
 }
 
 bool CTarget::HasBeenShot(CBullet* pBullet)
@@ -237,39 +208,34 @@ bool CTarget::HasBeenShot(CBullet* pBullet)
 
 void CTarget::OnTargetHurt()
 {
+	//other stuff was supposed to happen here.
 	this->setColor(Color::Red);
 }
 
 void CTarget::Die(CBullet* pBullet, CTank& pTank)
 {
-	for (UINT i = 0; i < this->m_Targets.size(); i++)
+	if (this->m_DefaultColor != this->getColor())
 	{
-		CTarget* pTarget = this->m_Targets[i];
+		static Clock clock;
 
-		if (pTarget->m_DefaultColor != pTarget->getColor())
+		if (clock.getElapsedTime().asMilliseconds() > 200.f)
 		{
-			static Clock clock;
-
-			if (clock.getElapsedTime().asMilliseconds() > 200.f)
-			{
-				pTarget->setColor(pTarget->m_DefaultColor);
-				clock.restart();
-			}
+			this->setColor(this->m_DefaultColor);
+			clock.restart();
 		}
+	}
 
-		if (pTarget->HasBeenShot(pBullet))
+	if (this->HasBeenShot(pBullet))
+	{
+		pBullet->SetIsMarkedForDeletion(true); // delete bullet after it hits a target.
+		this->SetHealth(this->GetHealth() - m_iDamage);
+		this->OnTargetHurt();
+
+		if (this->GetHealth() <= 0)
 		{
-			pBullet->m_bMarkedForDeletion = true; // delete bullet after it hits a target.
-			pTarget->m_iHealth -= m_iDamage;
-			pTarget->OnTargetHurt();
-
-			if (pTarget->m_iHealth <= 0)
-			{
-				delete pTarget;
-				this->m_Targets.erase(this->m_Targets.begin() + i);
-				this->Spawn();
-				gTankGameInfo.m_nKills++;
-			}
+			this->SetIsMarkedForDeletion(true);
+			gGameInfo.m_bQueueNextTarget = true;
+			gGameInfo.m_nKills++;
 		}
 	}
 }
@@ -285,12 +251,7 @@ void CTarget::MoveToTank(CTank& Tank)
 {
 	static float flFactor = 0.0f; 
 	flFactor = (g_WindowData.deltaTime * 0.1f);
-
-	for (UINT i = 0; i < this->m_Targets.size(); i++)
-	{
-		CTarget* pTarget = this->m_Targets[i];
-		pTarget->setPosition({ lerp(pTarget->getPosition().x, Tank.getPosition().x, flFactor), lerp(pTarget->getPosition().y, Tank.getPosition().y, flFactor) });
-	}
+	this->setPosition({ lerp(this->getPosition().x, Tank.getPosition().x, flFactor), lerp(this->getPosition().y, Tank.getPosition().y, flFactor) });
 }
 
 bool CTarget::IsTouchingTank(CTank& Tank)
@@ -300,7 +261,6 @@ bool CTarget::IsTouchingTank(CTank& Tank)
 
 void CTarget::Think(CTank &Tank)
 {
-
 	this->MoveToTank(Tank);
 
 	for (auto pBullets : Tank.m_Bullets)
@@ -332,9 +292,10 @@ RectangleShape CreateHealthBar(Vector2f vecPos, Color clrHealth, int iWidth)
 
 	return HealthBar;
 }
+
 void CTarget::DrawHealth(RenderWindow* pRenderWindow)
 {
-	int iHP = this->m_iHealth;
+	int iHP = this->GetHealth();
 	int iMaxHP = 100;
 
 	Vector2f vecPos = this->getPosition();
@@ -345,8 +306,6 @@ void CTarget::DrawHealth(RenderWindow* pRenderWindow)
 	RectangleShape Health = CreateHealthBar(vecPos, GetHealthColor(iHP, iMaxHP), GetHealthWidth(iHP, iMaxHP));
 	pRenderWindow->draw(Health);
 }
-
-
 
 void DrawTankBBOX(CTank& pTarget, RenderWindow* pWindow)
 {
@@ -374,33 +333,65 @@ void DrawTargetBBOX(CTarget* pTarget, RenderWindow* pWindow)
 
 void CTarget::Draw(RenderWindow* pRenderWindow)
 {
-	for (static size_t i = 0; i < 7; i++)
-		Spawn();
+	if (this->GetIsMarkedForDeletion())
+		return;
 
-	for (auto pTarget : m_Targets)
-	{
-		//DrawTargetBBOX(pTarget, pRenderWindow);
-		pTarget->DrawHealth(pRenderWindow);
-		pRenderWindow->draw(*pTarget);
-	}
+	this->DrawHealth(pRenderWindow);
+	pRenderWindow->draw(*this);
 }
 
-void PlayGame(RenderWindow* pRenderWindow, CTank& Tank, CTarget& Target)
+void CGame::CreateNewTarget()
 {
-	Tank.DrawDebugOverlay(pRenderWindow);
-	//DrawTankBBOX(Tank, pRenderWindow);
+	CTarget* pTarget = CreateTarget();
+	this->m_Targets.push_back(pTarget);
+}
 
-	Tank.MouseMove();
-	Tank.Move();
+void CGame::DeleteTarget(CTarget* pTargetToDelete, int index)
+{
+	delete pTargetToDelete;
+	this->m_Targets.erase(this->m_Targets.begin() + index);
+}
+
+void CGame::SpawnTargets()
+{
+	//create 5 targets.
+	for (static UINT i = 0; i < 5; i++)
+		this->CreateNewTarget();
+}
+
+void CGame::CreateAndManageTargets(CTank* pTank, RenderWindow* pRenderWindow)
+{
+	this->SpawnTargets();
+
+	for (UINT i = 0; i < this->m_Targets.size(); i++)
 	{
-		Tank.SpawnBullet();
-		Tank.SimulateBullet();
-		Tank.DrawBullet(pRenderWindow);
+		CTarget* pTarget = m_Targets[i];
 
-		Target.Think(Tank);
-		Target.Draw(pRenderWindow);
+		pTarget->Think(*pTank);
+
+		if (pTarget->GetIsMarkedForDeletion())
+			this->DeleteTarget(pTarget, i);
+
+		pTarget->Draw(pRenderWindow);
 	}
-	Tank.Draw(pRenderWindow);
+
+	if (gGameInfo.m_bQueueNextTarget)
+		this->CreateNewTarget();
+}
+
+
+
+void PlayGame(RenderWindow* pRenderWindow, CTank* Tank, CGame* pGame)
+{
+	Tank->MouseMove();
+	Tank->MoveTank();
+	{
+		Tank->SpawnBullet();
+		Tank->SimulateBullet();
+		Tank->DrawBullet(pRenderWindow);
+		pGame->CreateAndManageTargets(Tank, pRenderWindow);
+	}
+	Tank->Draw(pRenderWindow);
 
 	DrawCrosshair(pRenderWindow);
 }
