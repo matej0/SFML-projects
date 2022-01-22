@@ -47,7 +47,7 @@ void CPlayer::Think()
 
 bool CPlayer::HitObstacle(CObstacle& obstacle)
 {
-	//credits to some retard from stackoverflow.
+	//credits to some guy from stackoverflow.
 	float closestX = std::clamp(obstacle.getPosition().x, this->getPosition().x, this->getPosition().x + this->getGlobalBounds().width);
 	float closestY = std::clamp(obstacle.getPosition().y, this->getPosition().y, this->getPosition().y + this->getGlobalBounds().height);
 
