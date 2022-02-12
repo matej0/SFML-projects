@@ -55,10 +55,9 @@ public:
 
 		Vector2f vecCenter = Vector2f(this->getGlobalBounds().width / 2.f, this->getGlobalBounds().height / 2.f);//Vector2f(g_WindowData.center[0], g_WindowData.center[1]);
 		this->setOrigin(vecCenter);
-		this->setPosition(Vector2f(g_WindowData.center[0], g_WindowData.center[1]));
+		this->setPosition(Vector2f(g_WindowData.center.x, g_WindowData.center.y));
 
 		this->setScale({ 0.5f, 0.5f });
-
 	}
 	//this->setRadius(flRadius);
 	//this->setPointCount(3); // 3 points for triangle. 

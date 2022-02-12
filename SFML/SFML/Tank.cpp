@@ -1,14 +1,7 @@
 #include "Tank.h"
 ITankGameInfo gGameInfo;
 
-void DrawString(Vector2f vecPosition, int iCharSize, Uint32 iStyle, Font TextFont, Color clrTextColor, sf::String strText, ...)
-{
-	static RenderWindow* pRenderWindow = reinterpret_cast<RenderWindow*>(g_WindowData.pRenderWindowPointer);
-	Text text(strText, TextFont, iCharSize);
-	text.setPosition(vecPosition);
-	text.setFillColor(clrTextColor);
-	pRenderWindow->draw(text);
-}
+
 
 void DrawCrosshair(RenderWindow* pWindow)
 {
@@ -77,8 +70,8 @@ CBullet* CreateBullet(Vector2f vecPosition)
 {
 	CBullet* pBullet = new CBullet();
 	pBullet->setSize({10.f, 3.f});
-	pBullet->setOrigin(pBullet->getGlobalBounds().width, pBullet->getGlobalBounds().height);
-	pBullet->setPosition(gGameInfo.m_vecTankOrigin);
+	pBullet->setOrigin(pBullet->getGlobalBounds().width / 2.f, pBullet->getGlobalBounds().height / 2.f);
+	pBullet->setPosition(vecPosition);
 	pBullet->setFillColor(Color::Yellow);
 	return pBullet;
 }
@@ -111,7 +104,7 @@ void CTank::SpawnBullet()
 	
 	if (Mouse::isButtonPressed(Mouse::Left))
 	{
-		CBullet* pBullet = CreateBullet({ g_WindowData.center[0],  g_WindowData.center[1] });
+		CBullet* pBullet = CreateBullet(this->getPosition());
 
 		pBullet->setRotation(this->getRotation() - 90); //make it shoot out of the top of the triangle
 		pBullet->SetVelocity(std::cos(DEG2RAD(pBullet->getRotation())) * g_flProjectileSpeed * g_WindowData.deltaTime, std::sin(DEG2RAD(pBullet->getRotation())) * g_flProjectileSpeed * g_WindowData.deltaTime);
@@ -173,8 +166,8 @@ Vector2f CTarget::GetSpawnPosition() //THIS TOO!
 {
 	Vector2f vecSpawnPos = Vector2f();
 
-	vecSpawnPos.x = g_WindowData.Random(40, 1140);
-	vecSpawnPos.y = g_WindowData.Random(40, 740);
+	vecSpawnPos.x = g_WindowData.RandomInt(40, g_WindowData.width - 40);
+	vecSpawnPos.y = g_WindowData.RandomInt(40, g_WindowData.height - 40);
 
 	//while (gGameInfo.m_TankBoundingBox.contains(vecSpawnPos))
 	//{

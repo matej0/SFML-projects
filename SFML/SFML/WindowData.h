@@ -9,22 +9,47 @@
 #define PI 3.14159265358979323846f
 #define RAD2DEG( x ) ( ( float )( x ) * ( float )( 180.0f / ( float )( PI ) ) )
 #define DEG2RAD( x ) ( ( float )( x ) * ( float )( ( float )( PI ) / 180.0f ) )
+
+#if defined(__GNUC__) || defined(__clang__)
+#define DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define DEPRECATED __declspec(deprecated)
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define DEPRECATED
+#endif
+
+struct screencoords_t
+{
+	float x, y;
+};
+
 class CWindow
 {
 public:
-	unsigned int width;
-	unsigned int height;
+	int width;
+	int height;
+	int fps;
 	sf::Font font;
 	float deltaTime;
-	float center[2];
+	screencoords_t center;
 	PVOID pRenderWindowPointer;
 	PVOID pCurTime;
 
-	int Random(int min, int max)
+	int RandomInt(int min, int max)
 	{
 		std::random_device                  Device;
 		std::mt19937                        Generator(Device());
 		std::uniform_int_distribution<int>    Distr(min, max);
+
+		return Distr(Generator);
+	};
+
+	float RandomFloat(float min, float max)
+	{
+		std::random_device                  Device;
+		std::mt19937                        Generator(Device());
+		std::uniform_real_distribution<float>    Distr(min, max);
 
 		return Distr(Generator);
 	};

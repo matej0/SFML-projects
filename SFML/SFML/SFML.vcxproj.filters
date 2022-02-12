@@ -1,66 +1,72 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Tank">
+    <Filter Include="Flappy bird">
+      <UniqueIdentifier>{3d777944-35ce-4be6-b569-5e7a6b868a13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tank">
       <UniqueIdentifier>{0f655e4e-1ec5-4e1d-869c-7afb1e0cdb80}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Tank">
-      <UniqueIdentifier>{2da8120b-f2f1-423c-95d7-0b0c0cf6b799}</UniqueIdentifier>
+    <Filter Include="Events">
+      <UniqueIdentifier>{42685da8-3c20-4196-a29a-8433ae01ec0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Debug">
+      <UniqueIdentifier>{6d7addc1-752c-4f23-9860-5ba387e2f9de}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SFML.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Clock.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Snake.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HardGame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Tank.cpp">
-      <Filter>Source Files\Tank</Filter>
+      <Filter>Tank</Filter>
+    </ClCompile>
+    <ClCompile Include="Bird.cpp">
+      <Filter>Flappy bird</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipe.cpp">
+      <Filter>Flappy bird</Filter>
+    </ClCompile>
+    <ClCompile Include="Clock.cpp" />
+    <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="HardGame.cpp" />
+    <ClCompile Include="SFML.cpp" />
+    <ClCompile Include="Snake.cpp" />
+    <ClCompile Include="EventManager.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="BirdWorld.cpp">
+      <Filter>Flappy bird</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DVDLogo.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Bird.h">
+      <Filter>Flappy bird</Filter>
     </ClInclude>
-    <ClInclude Include="Clock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Snake.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HardGame.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Pipe.h">
+      <Filter>Flappy bird</Filter>
     </ClInclude>
     <ClInclude Include="Tank.h">
-      <Filter>Header Files\Tank</Filter>
+      <Filter>Tank</Filter>
+    </ClInclude>
+    <ClInclude Include="Clock.h" />
+    <ClInclude Include="DVDLogo.h" />
+    <ClInclude Include="GUI.h" />
+    <ClInclude Include="HardGame.h" />
+    <ClInclude Include="Snake.h" />
+    <ClInclude Include="WindowData.h" />
+    <ClInclude Include="EventManager.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="BirdWorld.h">
+      <Filter>Flappy bird</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

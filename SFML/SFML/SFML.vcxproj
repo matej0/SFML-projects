@@ -159,21 +159,31 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bird.cpp" />
     <ClCompile Include="Clock.cpp" />
+    <ClCompile Include="Debug.cpp" />
+    <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="HardGame.cpp" />
+    <ClCompile Include="Pipe.cpp" />
     <ClCompile Include="SFML.cpp" />
     <ClCompile Include="Snake.cpp" />
     <ClCompile Include="Tank.cpp" />
+    <ClCompile Include="BirdWorld.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bird.h" />
     <ClInclude Include="Clock.h" />
+    <ClInclude Include="Debug.h" />
     <ClInclude Include="DVDLogo.h" />
+    <ClInclude Include="EventManager.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="HardGame.h" />
+    <ClInclude Include="Pipe.h" />
     <ClInclude Include="Snake.h" />
     <ClInclude Include="Tank.h" />
     <ClInclude Include="WindowData.h" />
+    <ClInclude Include="BirdWorld.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,13 +3,6 @@ ITileMapProperties gTileMapProps;
 std::vector<CObstacle> rgObstacles;
 Vector2f vPos = Vector2f(48.f, 18.f);
 
-int A_RAND(int min, int max)
-{
-	std::random_device dev;
-	std::mt19937 rng(dev());
-	std::uniform_int_distribution<std::mt19937::result_type> xd(min, max);
-	return xd(rng);
-}
 
 void CPlayer::Think()
 {
@@ -47,7 +40,7 @@ void CPlayer::Think()
 
 bool CPlayer::HitObstacle(CObstacle& obstacle)
 {
-	//credits to some guy from stackoverflow.
+	//credits to some retard from stackoverflow.
 	float closestX = std::clamp(obstacle.getPosition().x, this->getPosition().x, this->getPosition().x + this->getGlobalBounds().width);
 	float closestY = std::clamp(obstacle.getPosition().y, this->getPosition().y, this->getPosition().y + this->getGlobalBounds().height);
 
@@ -67,7 +60,7 @@ void CPlayer::Draw(RenderWindow* pWindow)
 
 void CObstacle::StartMoving()
 {
-	const float flSpeed = A_RAND(3, 5);
+	const float flSpeed = g_WindowData.RandomInt(3, 5);
 
 	//this could prolly be written in a better way, too tired.
 	if (this->m_bShouldStartWithInverseVelocity)

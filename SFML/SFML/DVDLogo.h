@@ -5,16 +5,9 @@
 #include <sstream>
 #include <array>
 #include <random>
+#include "WindowData.h"
 using namespace sf;
 
-//randomly pick a number within given range
-int RandomIntBLOWME(int min, int max)
-{
-	std::random_device dev;
-	std::mt19937 rng(dev());
-	std::uniform_int_distribution<std::mt19937::result_type> dist(min, max);
-	return dist(rng);
-}
 
 //randomly pick between 2 given numbers
 int RandomIntAlt(int first, int second)
@@ -34,7 +27,7 @@ public:
 		if (pTexture)
 		{
 			this->setTexture(*pTexture);
-			this->setPosition(float(RandomIntBLOWME(10, 300)), float(RandomIntBLOWME(10, 300)));
+			this->setPosition(float(g_WindowData.RandomInt(10, 300)), float(g_WindowData.RandomInt(10, 300)));
 			this->setScale(0.1f, 0.1f);
 			this->m_vecVelocity = { float(RandomIntAlt(3, -3)), float(RandomIntAlt(3, -3)) };
 			this->m_bShouldChangeColorOnImpact = bShouldChangeColorOnImpact;
@@ -76,11 +69,11 @@ public:
 
 		//lol
 		const std::array<Color, 6> GetColors = { Color::Red, Color::Green, Color::Magenta, Color::Blue, Color::Yellow, Color::Cyan};
-		Color clrNewColor = GetColors.at(RandomIntBLOWME(0, 5));
+		Color clrNewColor = GetColors.at(g_WindowData.RandomInt(0, 5));
 
 		while (this->getColor() == clrNewColor)
 		{
-			clrNewColor = GetColors.at(RandomIntBLOWME(0, 5));
+			clrNewColor = GetColors.at(g_WindowData.RandomInt(0, 5));
 		}
 
 		this->setColor(clrNewColor);

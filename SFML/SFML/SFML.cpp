@@ -9,6 +9,9 @@
 #include <random>
 #include "WindowData.h"
 #include "Tank.h"
+
+#include "BirdWorld.h"
+
 using namespace sf;
 CWindow g_WindowData;
 
@@ -17,15 +20,15 @@ int main()
 	ContextSettings settings;
 	settings.antialiasingLevel = 2;
 
-	RenderWindow window(VideoMode(1200, 800, 32), "XD!", Style::Default, settings);
+	RenderWindow window(VideoMode(800, 600, 32), "XD!", Style::Default, settings);
 	window.setFramerateLimit(144);
 
 	g_WindowData.pRenderWindowPointer = &window;
 	g_WindowData.width = window.getSize().x;
 	g_WindowData.height = window.getSize().y;
 
-	g_WindowData.center[0] = window.getSize().x / 2.f; 
-	g_WindowData.center[1] = window.getSize().y / 2.f;
+	g_WindowData.center.x = window.getSize().x / 2.f; 
+	g_WindowData.center.y = window.getSize().y / 2.f;
 
 	if (!g_WindowData.font.loadFromFile("C:\\Windows\\Fonts\\Verdana.ttf"))
 	{
@@ -36,15 +39,18 @@ int main()
 	g_WindowData.pCurTime = &CurTimeClock;
 	Clock deltaClock;
 
-	Texture* pTexture = new Texture();
+	/*Texture* pTexture = new Texture();
 	
 	if (!pTexture->loadFromFile("tank.bmp", IntRect(25, 10, (256 - 45), (256 - 10))))
 	{
 		std::cout << "Couldnt load tank texture! (tank.bmp)\n";
 	}
+	*/
+	
+	CBirdWorld World;
 
-	CTank Tank(pTexture);
-	CGame Game;
+	World.LoadTextures();
+	World.Initialize();
 
 	while (window.isOpen())
 	{
@@ -52,6 +58,7 @@ int main()
 			CurTimeClock.restart();
 
 		g_WindowData.deltaTime = deltaClock.restart().asSeconds();
+
 
 		Event event;
 		while (window.pollEvent(event))
@@ -62,7 +69,7 @@ int main()
 
 		window.clear();
 
-		PlayGame(&window, &Tank, &Game);
+		World.Play(&window);
 
 		window.display();
 	}

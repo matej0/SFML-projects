@@ -9,7 +9,6 @@
 #include <algorithm>
 
 using namespace sf;
-int A_RAND(int min, int max);
 
 struct ITileMapProperties
 {
