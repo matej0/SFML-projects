@@ -36,6 +36,8 @@ void CBirdWorld::CleanUpPipes()
 	this->m_Pipes.clear();
 }
 
+//i shouldve made both of these functions take a pipe object as an argument and then call both inside one loop, reducing overhead.
+//the reason i didnt do that is because i both reused and rewrote large chunks of the code so i just forgot and then i couldnt be bothered to change it after uploading 
 void CBirdWorld::PipesThink()
 {
 	if (this->m_Pipes.empty())
